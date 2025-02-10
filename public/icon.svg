@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Arka plan dairesi -->
+    <circle cx="256" cy="256" r="248" fill="#1A1A1A" stroke="#00F7FF" stroke-width="16"/>
+    
+    <!-- M harfi -->
+    <path d="M154 384V128H194L256 304L318 128H358V384H318V208L256 384L194 208V384H154Z" 
+          fill="#00F7FF" 
+          stroke="#00F7FF" 
+          stroke-width="8"
+          stroke-linejoin="round"/>
+    
+    <!-- Dekoratif çizgiler -->
+    <path d="M154 208L194 208M318 208L358 208" 
+          stroke="#1A1A1A" 
+          stroke-width="4" 
+          stroke-linecap="round"/>
+          
+    <!-- Parıltı efektleri -->
+    <circle cx="154" cy="128" r="6" fill="#FFFFFF"/>
+    <circle cx="358" cy="128" r="6" fill="#FFFFFF"/>
+</svg> 
