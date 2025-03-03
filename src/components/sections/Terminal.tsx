@@ -21,12 +21,43 @@ const codeLines = [
 // Standard fontu figlet'e tanıtıyoruz
 figlet.parseFont("Standard", standardFont);
 
+// Terminal başlangıç yazıları için typewriter bileşeni
+const TerminalIntro = ({ onComplete }: { onComplete: () => void }) => {
+  const [step, setStep] = useState(0);
+  
+  useEffect(() => {
+    if (step === 3) {
+      // Bir sonraki adıma hemen geç
+      onComplete();
+    }
+  }, [step, onComplete]);
+
+  // Her adımı sadece 50ms bekleyerek hızlandır
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (step < 3) {
+        setStep(step + 1);
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [step]);
+
+  return (
+    <>
+      {step >= 0 && <p className="text-[#bb9af7]">Terminal Portfolio v1.0</p>}
+      {step >= 1 && <p className="text-[#9ece6a]">Melih Can Demir - Full Stack Developer</p>}
+      {step >= 2 && <p className="text-[#7aa2f7]">Type 'help' for a list of commands</p>}
+    </>
+  );
+};
+
 const Terminal = () => {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [theme, setTheme] = useState("dark");
   const [banner, setBanner] = useState("");
+  const [introComplete, setIntroComplete] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Component mount olduğunda inputa odaklan
@@ -79,7 +110,7 @@ const Terminal = () => {
   // Asenkron figlet komutu için yardımcı fonksiyon
   const generateFigletText = (text: string): Promise<string> => {
     return new Promise((resolve, reject) => {
-      figlet.text(text, { font: "Standard" }, (err, data) => {
+      figlet.text(text, { font: "Standard", width: 80 }, (err, data) => {
         if (err) {
           reject(err);
         } else if (data) {
@@ -91,62 +122,71 @@ const Terminal = () => {
     });
   };
 
+  // Daha hızlı terminal çıktısı sağlayacak yardımcı fonksiyon
+  const addOutputFast = (lines: string[]) => {
+    // Tüm satırları doğrudan ekle, animasyon olmadan
+    setOutput(prev => [...prev, ...lines]);
+    setIsTyping(false);
+  };
+  
   const handleCommand = async () => {
     if (input.trim() === "") return;
 
-    setIsTyping(true);
+    // İlk önce girdiyi ekle, herhangi bir gecikme olmadan
+    setOutput(prev => [...prev, `guest@melih:~$ ${input}`]);
+    
     const commandInput = input.trim();
     const commandLower = commandInput.toLowerCase();
+    
+    // Input alanını hemen temizle
+    setInput("");
+    setIsTyping(true);
 
-    // Yazma efekti için 500ms gecikme
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Minimal bir gecikme, gerçek zamanlı hissi için
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     if (commandLower === "clear") {
       setOutput([]);
+      setIsTyping(false);
     } else if (commandLower === "theme dark") {
       setTheme("dark");
+      addOutputFast(["Theme changed to dark mode"]);
     } else if (commandLower === "theme light") {
       setTheme("light");
+      addOutputFast(["Theme changed to light mode"]);
     } else if (commandLower.startsWith("figlet ")) {
       const textToConvert = commandInput.slice(7);
       try {
         const asciiArt = await generateFigletText(textToConvert);
-        setOutput((prev) => [...prev, `> ${commandInput}`, asciiArt]);
+        addOutputFast([asciiArt]);
       } catch {
-        setOutput((prev) => [
-          ...prev,
-          `> ${commandInput}`,
-          "Error generating ASCII art.",
-        ]);
+        addOutputFast(["Error generating ASCII art."]);
       }
     } else if (commandLower === "matrix") {
-      // Basit matrix efekti: rastgele 0 ve 1'lerden oluşan satırlar
-      const matrixLines = 20;
+      // Basit matrix efekti: rastgele 0 ve 1'lerden oluşan satırlar - Satır sayısı azaltıldı
+      const matrixLines = 8; // 10'dan 8'e düşürüldü
       const lineLength = 60;
       const matrixOutput = Array.from({ length: matrixLines }, () =>
         Array.from({ length: lineLength }, () =>
           Math.random() > 0.5 ? "0" : "1"
         ).join("")
       );
-      setOutput((prev) => [...prev, `> ${commandInput}`, ...matrixOutput]);
+      addOutputFast([...matrixOutput]);
     } else {
       const response = commands[commandLower];
       if (response) {
-        setOutput((prev) => [
-          ...prev,
-          `> ${commandInput}`,
-          ...(Array.isArray(response) ? response : [response]),
-        ]);
+        if (Array.isArray(response)) {
+          addOutputFast([...response]);
+        } else {
+          addOutputFast([response]);
+        }
       } else {
-        setOutput((prev) => [
-          ...prev,
-          `> ${commandInput}`,
-          "Error: Unknown command! Try `help`.",
-        ]);
+        addOutputFast([`Command not found: ${commandInput}. Type 'help' for available commands.`]);
       }
     }
-    setInput("");
-    setIsTyping(false);
+    
+    // İşlem tamamlandıktan sonra input'a tekrar odaklan
+    inputRef.current?.focus();
   };
 
   return (
@@ -179,30 +219,17 @@ const Terminal = () => {
             <div className="overflow-auto flex-grow">
               {/* Figlet banner */}
               <pre className="text-[#7aa2f7] whitespace-pre-wrap overflow-x-auto">{banner}</pre>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="text-[#bb9af7]"
-              >
-                Terminal Portfolio v1.0
-              </motion.p>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="text-[#9ece6a]"
-              >
-                Melih Can Demir - Full Stack Developer
-              </motion.p>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-                className="text-[#7aa2f7]"
-              >
-                Type 'help' for a list of commands
-              </motion.p>
+              
+              {!introComplete ? (
+                <TerminalIntro onComplete={() => setIntroComplete(true)} />
+              ) : (
+                <>
+                  <p className="text-[#bb9af7]">Terminal Portfolio v1.0</p>
+                  <p className="text-[#9ece6a]">Melih Can Demir - Full Stack Developer</p>
+                  <p className="text-[#7aa2f7]">Type 'help' for a list of commands</p>
+                </>
+              )}
+              
               <br />
               {output.map((line, index) => (
                 <p key={index} className="text-sm whitespace-pre-wrap overflow-x-auto">
@@ -211,7 +238,7 @@ const Terminal = () => {
               ))}
               {isTyping && (
                 <p>
-                  <Typewriter words={["..."]} loop={false} cursor />
+                  <Typewriter words={["..."]} loop={false} cursor typeSpeed={10} deleteSpeed={5} />
                 </p>
               )}
             </div>

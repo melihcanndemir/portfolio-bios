@@ -35,9 +35,9 @@ const CodeReveal = ({
       index++;
       if (index > codeLines.length) {
         clearInterval(interval);
-        setTimeout(() => setCodeComplete(true), 500); // Kod tamamlandıktan sonra küçük gecikme
+        setTimeout(() => setCodeComplete(true), 150); // Kod tamamlandıktan sonra gecikme - 300ms'den 150ms'ye düşürüldü
       }
-    }, 200);
+    }, 50); // 120ms'den 50ms'ye düşürüldü - çok daha hızlı kod animasyonu
 
     return () => clearInterval(interval);
   }, [codeLines]); // added codeLines as dependency
@@ -55,7 +55,7 @@ const CodeReveal = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1 }}
+      transition={{ duration: 0.3 }} // 0.6'dan 0.3'e düşürüldü
       className="w-full p-2 bg-gradient-to-r from-[#7aa2f7] to-[#bb9af7] rounded-lg shadow-lg"
       style={{ maxWidth: "100%" }}
     >
@@ -88,7 +88,7 @@ const CodeReveal = ({
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
+            transition={{ duration: 0.3 }} // 0.6'dan 0.3'e düşürüldü
             className="w-full bg-[#1a1b26] rounded-lg"
           >
             {children}

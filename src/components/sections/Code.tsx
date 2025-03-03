@@ -8,6 +8,89 @@ import {
   SandpackLayout,
 } from "@codesandbox/sandpack-react";
 
+// Tokyo Night renk şeması
+const tokyoNightColors = {
+  background: "#1a1b26",
+  foreground: "#a9b1d6",
+  keyword: "#bb9af7",
+  function: "#7aa2f7",
+  string: "#9ece6a",
+  comment: "#565f89",
+  variable: "#c0caf5",
+  number: "#ff9e64",
+  property: "#73daca",
+  operator: "#89ddff",
+  type: "#2ac3de",
+  className: "#e0af68",
+};
+
+// Sandpack için özel Tokyo Night teması
+const tokyoNightTheme = {
+  colors: {
+    surface1: "#1a1b26",
+    surface2: "#24283b",
+    surface3: "#414868",
+    clickable: "#7aa2f7",
+    base: "#a9b1d6",
+    disabled: "#565f89",
+    hover: "#2f354a",
+    accent: "#bb9af7",
+    error: "#f7768e",
+    errorSurface: "#33262b",
+  },
+  syntax: {
+    plain: "#c0caf5",
+    comment: "#565f89",
+    keyword: "#bb9af7",
+    tag: "#7aa2f7",
+    punctuation: "#89ddff",
+    definition: "#7aa2f7",
+    property: "#73daca",
+    static: "#ff9e64",
+    string: "#9ece6a",
+  },
+  font: {
+    body: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    mono: "'JetBrains Mono', 'Fira Mono', 'Courier New', monospace",
+    size: "14px",
+    lineHeight: "1.5",
+  },
+};
+
+// Basit syntax highlighting için yardımcı fonksiyon
+const highlightCode = (code: string): React.ReactNode[] => {
+  // Basit tokenizer ve highlighter
+  const tokenize = (input: string) => {
+    // Temel desenler
+    const patterns = [
+      { type: 'comment', regex: /\/\/.*$/gm, color: tokyoNightColors.comment },
+      { type: 'keyword', regex: /\b(import|export|from|interface|type|function|const|let|var|return|if|else|for|while|switch|case|break|continue|default|class|extends|implements|new|this|super|try|catch|finally|throw|async|await|static|private|protected|public|get|set)\b/g, color: tokyoNightColors.keyword },
+      { type: 'type', regex: /\b(number|string|boolean|null|undefined|any|void|never|object|symbol|unknown|bigint|React|useState|useEffect)\b/g, color: tokyoNightColors.type },
+      { type: 'function', regex: /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?=\()/g, color: tokyoNightColors.function },
+      { type: 'string', regex: /(["'`])(?:(?=(\\?))\2.)*?\1/g, color: tokyoNightColors.string },
+      { type: 'number', regex: /\b\d+\b/g, color: tokyoNightColors.number },
+      { type: 'jsx-tag', regex: /<\/?[a-zA-Z]+/g, color: tokyoNightColors.operator },
+      { type: 'operator', regex: /[{}[\]<>=+\-*/.:;,!?&|^%]+/g, color: tokyoNightColors.operator },
+      { type: 'property', regex: /\.[a-zA-Z_$][a-zA-Z0-9_$]*/g, color: tokyoNightColors.property },
+      { type: 'className', regex: /className="[^"]*"/g, color: tokyoNightColors.className },
+    ];
+
+    let result = input;
+    // En Basit şekilde her deseni işleyelim
+    patterns.forEach(({regex, color}) => {
+      result = result.replace(regex, match => `<span style="color: ${color}">${match}</span>`);
+    });
+    
+    return result;
+  };
+
+  // Kodu satırlara böl ve her satırı highlight et
+  const lines = code.split('\n');
+  return lines.map((line, index) => (
+    <div key={index} dangerouslySetInnerHTML={{ __html: tokenize(line) || '&nbsp;' }} />
+  ));
+};
+
 const files: SandpackFiles = {
   "/App.tsx": `import React, { useState } from "react";
 import "./styles.css";
@@ -226,9 +309,10 @@ const LiveCodeEditor = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="p-4 font-mono text-sm text-[#a9b1d6] bg-[#1a1b26] whitespace-pre"
+              className="p-4 font-mono text-sm bg-[#1a1b26] whitespace-pre overflow-x-auto"
+              style={{ color: tokyoNightColors.foreground, lineHeight: 1.5 }}
             >
-              {displayedCode}
+              {highlightCode(displayedCode)}
             </motion.div>
           ) : (
             <motion.div
@@ -239,7 +323,7 @@ const LiveCodeEditor = () => {
             >
               <SandpackProvider
                 template="react-ts"
-                theme="dark"
+                theme={tokyoNightTheme}
                 files={files}
                 options={{
                   externalResources: ["https://cdn.tailwindcss.com"],
