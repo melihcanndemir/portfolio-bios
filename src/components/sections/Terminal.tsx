@@ -3,7 +3,7 @@ import { Typewriter } from "react-simple-typewriter";
 import { motion } from "framer-motion";
 import figlet from "figlet";
 // Figlet'in Standard fontunu tarayıcıda kullanabilmek için import edip parse ediyoruz
-// @ts-ignore
+// @ts-expect-error - Figlet importable fonts modülü için eksik tip tanımlaması
 import standardFont from "figlet/importable-fonts/Standard.js";
 import CodeReveal from "../common/CodeReveal";
 
